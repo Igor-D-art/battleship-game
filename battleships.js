@@ -21,10 +21,11 @@ const model = {
     numShips: 3,  // now hardcoded
     shipLength: 3,  // number of cells in one ship - now hardcoded
     shipSunk: 0,  // now hardcoded
+    gameOver: false,
 
-    ships: [{locations: ["0","0","0"], hits: ["", "", ""]},
-            {locations: ["0","0","0"], hits: ["", "", ""]},
-            {locations: ["0","0","0"], hits: ["", "", ""]}
+    ships: [{locations: [0,0,0], hits: ["", "", ""]},
+            {locations: [0,0,0], hits: ["", "", ""]},
+            {locations: [0,0,0], hits: ["", "", ""]}
     ],
 
     fire: function(guess){
@@ -55,12 +56,20 @@ const model = {
     },
 
     generateShipLocations: function(){
-        let locations;
-        for (i=0; i<this.numShips; i++){
+        let locations; 
+        console.log ("locations before the for loop " + locations);
+        
+        for (let i=0; i<this.numShips; i++){
+            console.log (i);
+            console.log(this.ships[i]);
            do{
-            locations=this.generateShip();
+               locations=this.generateShip();
+               console.log (i);
             } while (this.collision(locations));
-            this.ships[i].locations=locations;
+          console.log ("locations within the for loop after the generateShip and collision check " + locations);
+          console.log(i);
+          console.log(this.ships[i]);
+          this.ships[i].locations = locations;
         };
     },
 
@@ -83,7 +92,7 @@ const model = {
             col = Math.floor(Math.random()*this.boardsize);
         };
 
-        for(i=0; i<this.shipLength; i++){
+        for(let i=0; i<this.shipLength; i++){
             if(orientation===1){
                 // generate locatioin array for a vertical ship
                 newShipLocations.push(row + "" + (col+i));
@@ -97,8 +106,8 @@ const model = {
     }, 
 
     collision: function(locations){
-        for (i=0; i<this.numShips; i++ ){
-            for (j=0; j<locations.length; j++){
+        for (let i=0; i<this.numShips; i++ ){
+            for (let j=0; j<locations.length; j++){
                 if(this.ships[i].locations.indexOf(locations[j])>=0){
                     return true;
                 };
@@ -113,9 +122,10 @@ const model = {
 const controller = {
     // counter of guesses
     guesses: 0,
+    guessHistory: [],
 
     parseGuess: function(guess){
-        
+       
         let validLetters = ["A", "B", "C", "D", "E", "F", "G"];
 
         // validation of input as a whole
@@ -133,7 +143,10 @@ const controller = {
                 alert("Oooops, that isn't on the board!");
             } else if (rowIndex<0 || rowIndex>=model.boardsize || colIndex<0 || colIndex>=model.boardsize){  
                 alert("Oooops, that isn't on the board!");
-            } else {
+            } else if (this.guessHistory.indexOf(rowIndex + colIndex)>=0){
+                alert("Ooops, this location has already been tested, so continue with a new one!") 
+            } else { 
+                this.guessHistory.push((rowIndex + colIndex));
                 return rowIndex + colIndex; // concatinating row and column indexes
             };
         };
@@ -149,6 +162,8 @@ const controller = {
             // checking for how many ships have been sunk
             if(hit && model.shipSunk===model.numShips){
                 view.displayMessage("You sank all the enemy bastards in " + this.guesses + " guesses! Please reload the page to play again!");
+                let fireBtn = document.getElementById("fireButton");
+                fireBtn.disabled = true;
             }
         };
     },
